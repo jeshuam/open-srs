@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    {# Bootstrap #}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/lib/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/lib/bootstrap-theme.min.css') }}">
+
+    {# jQuery #}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/lib/jquery-ui.css') }}">
+
+    {# Common CSS #}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/_common.css') }}">
+
+    {# Custom CSS #}
+    {% block css %}{% endblock %}
+
+    <title>{% block title %}Open SRS{% endblock %}</title>
+</head>
+<body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">Open SRS</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/">Home</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            {% if current_user.is_authenticated %}
+                <li><a href="/logout">Logout</a></li>
+            {% else %}
+                <li><a href="/login">Login</a></li>
+                <li><a href="/register">Register</a></li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+</body>
+<footer>
+    {# jQuery #}
+    <script src="{{ url_for('static', filename='js/lib/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/lib/jquery-ui.min.js') }}"></script>
+
+    {# Bootstrap #}
+    <script src="{{ url_for('static', filename='js/lib/bootstrap.min.js') }}"></script>
+
+    {# sprintf() utility #}
+    <script src="{{ url_for('static', filename='js/lib/sprintf.min.js') }}"></script>
+
+    {# moment.js #}
+    <script src="{{ url_for('static', filename='js/lib/moment.min.js') }}"></script>
+
+    {# Custom JS #}
+    {% block js %}{% endblock %}
+</footer>
+</html>
