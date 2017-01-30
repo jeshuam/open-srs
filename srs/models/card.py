@@ -1,4 +1,5 @@
 from srs import api_manager, app, db
+from srs.models import deck
 
 
 class CardTypeField(db.Model):
@@ -35,10 +36,19 @@ class CardTypeView(db.Model):
 
 class CardType(db.Model):
   id = db.Column(db.Integer, primary_key=True)
+  stormpath_id = db.Column(db.String(21))
   name = db.Column(db.String(80))
 
-  def __init__(self, name):
+  __table_args__ = (db.UniqueConstraint('stormpath_id', 'name'),)
+
+  def __init__(self, stormpath_id, name):
+    self.stormpath_id = stormpath_id
     self.name = name
+
+  @classmethod
+  def query(cls):
+    return db.session.query(CardType).filter_by(
+        stormpath_id=user.href.rsplit('/')[-1])
 
 
 class CardFieldValue(db.Model):
@@ -77,6 +87,12 @@ class Card(db.Model):
 
   def __init__(self):
     pass
+
+  @classmethod
+  def query(cls):
+    return (db.session.query(Card)
+             .join(deck.Deck)
+             .filter(deck.Deck.stormpath_id == user.href.rsplit('/')[-1]))
 
 
 # Create API.

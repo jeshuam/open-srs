@@ -1,0 +1,44 @@
+/* Loading glyphicon styles. */
+div#decks .loading {
+  font-size: 1.5em;
+  text-align: center;
+}
+
+/* Add a margin after the decks. */
+div#decks .input-group {
+  margin-bottom: 20px;
+}
+
+/* New deck button styles. */
+div#new-deck {
+  /* Make the div appear slightly above the bottom of the screen, and take up
+     the whole width. */
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 5%;
+
+  /* Align the text to the center of the div. */
+  text-align: center;
+}
+
+div#new-deck div.plus-circle {
+  /* Set the circle size. */
+  width: 64px;
+  height: 64px;
+  
+  /* Align the text in the middle (vertically). Sould match width/height. */
+  line-height: 64px;
+
+  /* Make the div a circle. */
+  border-radius: 50%;
+
+  /* Make the + take up more or less space. */
+  font-size: 50px;
+  
+  /* Center the div. */
+  margin: 0 auto;
+
+  /* Remove .btn padding. */
+  padding: 0;
+}

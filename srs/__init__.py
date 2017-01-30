@@ -20,21 +20,23 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
 db = SQLAlchemy(app)
 
 # Make the API functions.
-def api_auth_func(**kwargs):
+def api_check_logged_in(**kwargs):
   if not user.is_authenticated:
     raise ProcessingException(description='Not Authorized', code=401)
+
+def post_add_user_id(data, **kwargs):
+  """Add the user ID information to new decks."""
+  data['stormpath_id'] = user.href.rsplit('/')[-1]
 
 api_manager = APIManager(
     app,
     flask_sqlalchemy_db=db,
     preprocessors=dict(
-        POST=[api_auth_func],
-        GET_SINGLE=[api_auth_func],
-        GET_MANY=[api_auth_func],
-        PUT_SINGLE=[api_auth_func],
-        PUT_MANY=[api_auth_func],
-        DELETE_SINGLE=[api_auth_func],
-        DELETE_MANY=[api_auth_func],
+        POST=[api_check_logged_in, post_add_user_id],
+        GET_SINGLE=[api_check_logged_in],
+        GET_MANY=[api_check_logged_in],
+        PUT_SINGLE=[api_check_logged_in],
+        DELETE_SINGLE=[api_check_logged_in],
     ))
 
 

@@ -1,19 +1,37 @@
 from srs import api_manager, app, db
 
-from flask_stormpath import StormpathManager
+from flask_stormpath import StormpathManager, user
 
 
 class Deck(db.Model):
   id = db.Column(db.Integer, primary_key=True)
-  user_href = db.Column(db.String(256))
+  stormpath_id = db.Column(db.String(21))
   name = db.Column(db.String(80))
 
-  __table_args__ = (db.UniqueConstraint('user_href', 'name'),)
+  __table_args__ = (db.UniqueConstraint('stormpath_id', 'name'),)
 
-  def __init__(self, user_href, email):
-    self.user = StormpathManager.load_user(user_href)
+  def __init__(self, stormpath_id, name):
+    self.stormpath_id = stormpath_id
     self.name = name
+
+  @classmethod
+  def query(cls):
+    """Only return results which are for the current user."""
+    return db.session.query(Deck).filter_by(
+        stormpath_id=user.href.rsplit('/')[-1])
 
 
 # Create API.
-api_manager.create_api(Deck, methods=['GET', 'POST', 'DELETE', 'PUT'])
+def auth_fn_delete_deck(instance_id, **kwargs):
+  """Ensure that the user can only delete this deck if they own it."""
+  deck = Deck.query.filter_by(id=instance_id).first()
+  if user.href.rsplit('/')[-1] != deck.stormpath_id:
+    raise ProcessingException(description='Not Authorized', code=401)
+
+api_manager.create_api(
+    Deck,
+    methods=['GET', 'POST', 'DELETE', 'PUT'],
+    exclude_columns=['stormpath_id'],
+    preprocessors=dict(
+      DELETE=[auth_fn_delete_deck],
+    ))
