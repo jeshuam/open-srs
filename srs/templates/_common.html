@@ -68,6 +68,11 @@
     {# moment.js #}
     <script src="{{ url_for('static', filename='js/lib/moment.min.js') }}"></script>
 
+    {# custom APIs #}
+    <script src="{{ url_for('static', filename='js/models/card_type.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/models/card.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/models/deck.js') }}"></script>
+
     {# Custom JS #}
     {% block js %}{% endblock %}
 </footer>

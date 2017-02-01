@@ -28,10 +28,17 @@ def auth_fn_delete_deck(instance_id, **kwargs):
   if user.href.rsplit('/')[-1] != deck.stormpath_id:
     raise ProcessingException(description='Not Authorized', code=401)
 
+def post_add_user_id(data, **kwargs):
+  """Add the user ID information to new decks."""
+  print(data, kwargs)
+  data['stormpath_id'] = user.href.rsplit('/')[-1]
+
 api_manager.create_api(
     Deck,
     methods=['GET', 'POST', 'DELETE', 'PUT'],
+    primary_key='name',
     exclude_columns=['stormpath_id'],
     preprocessors=dict(
+      POST=[post_add_user_id],
       DELETE=[auth_fn_delete_deck],
     ))

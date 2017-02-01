@@ -1,4 +1,5 @@
 from srs import app
+from srs.models.card import Card
 from srs.models.deck import Deck
 
 from flask import render_template
@@ -14,3 +15,9 @@ def index():
 @login_required
 def decks():
   return render_template('decks.html')
+
+
+@app.route('/deck/<string:name>')
+@login_required
+def deck(name):
+  return render_template('deck.html', deck_name=name)

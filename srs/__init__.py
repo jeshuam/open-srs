@@ -24,15 +24,11 @@ def api_check_logged_in(**kwargs):
   if not user.is_authenticated:
     raise ProcessingException(description='Not Authorized', code=401)
 
-def post_add_user_id(data, **kwargs):
-  """Add the user ID information to new decks."""
-  data['stormpath_id'] = user.href.rsplit('/')[-1]
-
 api_manager = APIManager(
     app,
     flask_sqlalchemy_db=db,
     preprocessors=dict(
-        POST=[api_check_logged_in, post_add_user_id],
+        POST=[api_check_logged_in],
         GET_SINGLE=[api_check_logged_in],
         GET_MANY=[api_check_logged_in],
         PUT_SINGLE=[api_check_logged_in],

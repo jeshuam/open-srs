@@ -1,6 +1,8 @@
 from srs import api_manager, app, db
 from srs.models import deck
 
+from flask_stormpath import user
+
 
 class CardTypeField(db.Model):
   id = db.Column(db.Integer, primary_key=True)
@@ -10,7 +12,7 @@ class CardTypeField(db.Model):
   card_type_id = db.Column(db.Integer, db.ForeignKey('card_type.id'))
   card_type = db.relationship(
       'CardType',
-      backref=db.backref('card_type_field_card_type', lazy='dynamic'))
+      backref=db.backref('fields', lazy='dynamic'))
 
   def __init__(self, field_name):
     self.field_name = field_name
@@ -26,7 +28,7 @@ class CardTypeView(db.Model):
   card_type_id = db.Column(db.Integer, db.ForeignKey('card_type.id'))
   card_type = db.relationship(
       'CardType',
-      backref=db.backref('card_type_view_card_type', lazy='dynamic'))
+      backref=db.backref('views', lazy='dynamic'))
 
   def __init__(self, front_html, back_html, common_css):
     self.front_html = front_html
@@ -53,19 +55,13 @@ class CardType(db.Model):
 
 class CardFieldValue(db.Model):
   id = db.Column(db.Integer, primary_key=True)
+  field = db.Column(db.String(80))
   value = db.Column(db.String(80))
 
-  # Each CardFieldValue belongs to exactly one card and is associated with
-  # exactly one CardTypeField.
-  card_type_field_id = db.Column(
-      db.Integer, db.ForeignKey('card_type_field.id'))
-  card_type = db.relationship(
-      'CardTypeField',
-      backref=db.backref('card_field_value_card_type', lazy='dynamic'))
-
+  # Each CardFieldValue belongs to exactly one Card.
   card_id = db.Column(db.Integer, db.ForeignKey('card.id'))
   card = db.relationship(
-      'Card', backref=db.backref('card_field_value_card', lazy='dynamic'))
+      'Card', backref=db.backref('field_values', lazy='dynamic'))
 
   def __init__(self, value):
     self.value = value
@@ -73,20 +69,21 @@ class CardFieldValue(db.Model):
 
 class Card(db.Model):
   id = db.Column(db.Integer, primary_key=True)
-  
+
   # Each Card has exactly one CardType. This defines which fields are available
   # and also which views are available.
-  card_type_id = db.Column(db.Integer, db.ForeignKey('card_type.id'))
+  card_type_name = db.Column(db.Integer, db.ForeignKey('card_type.name'))
   card_type = db.relationship(
-      'CardType', backref=db.backref('card_card_type', lazy='dynamic'))
+      'CardType', backref=db.backref('cards', lazy='dynamic'))
 
   # Each card belongs to exactly one Deck.
-  deck_id = db.Column(db.Integer, db.ForeignKey('deck.id'))
+  deck_name = db.Column(db.Integer, db.ForeignKey('deck.name'))
   deck = db.relationship(
-      'Deck', backref=db.backref('card_deck', lazy='dynamic'))
+      'Deck', backref=db.backref('cards', lazy='dynamic'))
 
-  def __init__(self):
-    pass
+  def __init__(self, card_type_name, deck_name):
+    self.card_type_name = card_type_name
+    self.deck_name = deck_name
 
   @classmethod
   def query(cls):
@@ -96,8 +93,31 @@ class Card(db.Model):
 
 
 # Create API.
+def auth_fn_delete_card_type(instance_id, **kwargs):
+  """Ensure that the user can only delete this deck if they own it."""
+  deck = CardType.query.filter_by(id=instance_id).first()
+  if user.href.rsplit('/')[-1] != deck.stormpath_id:
+    raise ProcessingException(description='Not Authorized', code=401)
+
+def post_add_user_id(data, **kwargs):
+  """Add the user ID information to new decks."""
+  print(data, kwargs)
+  data['stormpath_id'] = user.href.rsplit('/')[-1]
+
 api_manager.create_api(CardTypeField, methods=['GET', 'POST', 'DELETE', 'PUT'])
 api_manager.create_api(CardTypeView, methods=['GET', 'POST', 'DELETE', 'PUT'])
-api_manager.create_api(CardType, methods=['GET', 'POST', 'DELETE', 'PUT'])
+api_manager.create_api(
+    CardType,
+    methods=['GET', 'POST', 'DELETE', 'PUT'],
+    primary_key='name',
+    exclude_columns=['stormpath_id'],
+    preprocessors=dict(
+        POST=[post_add_user_id],
+        DELETE=[auth_fn_delete_card_type],
+    ))
+
 api_manager.create_api(CardFieldValue, methods=['GET', 'POST', 'DELETE', 'PUT'])
-api_manager.create_api(Card, methods=['GET', 'POST', 'DELETE', 'PUT'])
+api_manager.create_api(
+    Card,
+    methods=['GET', 'POST', 'DELETE', 'PUT'],
+    exclude_columns=['card_type', 'deck'])

@@ -1,0 +1,33 @@
+{% extends "_common.html" %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/deck.css') }}">
+{% endblock %}
+
+{% block js %}
+<script type="text/javascript">
+
+DECK_NAME = '{{ deck_name }}';
+
+</script>
+<script src="{{ url_for('static', filename='js/deck.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+  <div class="col-sm-4 col-lg-3"></div>
+  <div class="col-sm-4 col-lg-5">
+    <div id="deck">
+      <h1>{{ deck_name }}</h1>
+      <div id="cards"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Plus button for adding new cards -->
+<div id="new-card">
+  <div class="plus-circle btn btn-primary">+</div>
+</div>
+
+{% endblock %}
