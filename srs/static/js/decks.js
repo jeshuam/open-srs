@@ -1,159 +1,169 @@
+function MakeNewDeckInputGroup() {
+    let template =
+        `
+<div class="input-group deck-new">
+  <input class="form-control" />
+  <div class="input-group-btn">
+    <button class="btn btn-success">
+      <span class="glyphicon glyphicon-ok"></span>
+    </button>
+  </div>
+</div>`
+
+    let $new_deck_input = $(template);
+    let $submit_button = $new_deck_input.find('.btn-success');
+
+    $new_deck_input.find('input')
+        .keypress(function(e) {
+            if (e.which == 13) {
+                $submit_button.click();
+            }
+        });
+
+    $submit_button.click(function() {
+        let $input = $new_deck_input.find('input');
+
+        // Setup a loading icon...
+        $new_deck_input.find('.glyphicon-ok')
+            .removeClass('glyphicon-ok')
+            .addClass('glyphicon-refresh glyphicon-refresh-animate');
+
+        // Make the new deck!
+        Deck.New($input.val())
+            .done(function(deck) {
+                DECKS.push(deck);
+                $('#decks')
+                    .empty();
+                GenerateDecksDiv();
+            })
+            .fail(function(response) {
+                if (response.message == 'IntegrityError') {
+                    $new_deck_input.addClass('has-error')
+                        .find('input')
+                        .tooltip({
+                            placement: 'bottom',
+                            title: function() {
+                                return `The name "${$input.val()}" is already taken.`;
+                            },
+                            trigger: 'manual',
+                        })
+                        .tooltip('show');
+                }
+            })
+            .always(function() {
+                $new_deck_input.find('.glyphicon')
+                    .removeClass('glyphicon-refresh glyphicon-refresh-animate')
+                    .addClass('glyphicon-ok');
+            });
+    });
+
+    return $new_deck_input;
+}
+
 /**
  * Generate the HTML for the given deck_name.
  *
  * @class      NewDeckInputGroup (name)
  */
-function NewDeckInputGroup(deck_name) {
-    var $input_group_btn_tmpl = $('<div>')
-        .addClass('input-group-btn')
-        .html($('<button>')
-            .addClass('btn')
-            .html($('<span>')
-                .addClass('glyphicon')));
-    // Make the main input group.
-    var $new_input_group = $('<div>')
-        .addClass('input-group');
-    // Make the buttons on the left and right of the input group.
-    var $trash_btn = $input_group_btn_tmpl.clone();
-    $trash_btn.find('.btn')
-        .addClass('btn-danger');
-    $trash_btn.find('.glyphicon')
-        .addClass('glyphicon-trash');
-    $trash_btn.click(function() {
-        // Change the trash icon into a loading icon.
-        $trash_btn.find('.glyphicon')
+function MakeDeckInputGroup(deck_name) {
+    let template =
+        `
+<div class="input-group deck">
+  <div class="input-group-btn">
+    <button class="btn btn-danger">
+      <span class="glyphicon glyphicon-trash"></span>
+    </button>
+  </div>
+  <button class="btn btn-success form-control">${deck_name}</button>
+  <div class="input-group-btn">
+    <button class="btn btn-primary">
+      <span class="glyphicon glyphicon-pencil"></span>
+    </button>
+  </div>
+</div>`
+
+    let $new_deck = $(template);
+
+    // Extract some key elements.
+    let $delete_btn = $new_deck.find('.btn-danger');
+    let $edit_btn = $new_deck.find('.btn-primary');
+    let $navigate_btn = $new_deck.find('.btn-success');
+
+    // When the trash button is pressed, delete it.
+    $delete_btn.click(function() {
+        $delete_btn.find('.glyphicon-trash')
             .removeClass('glyphicon-trash')
             .addClass('glyphicon-refresh glyphicon-refresh-animate');
+
         // Delete the deck.
         Deck.Delete(deck_name)
             .always(function() {
-                $new_input_group.detach();
+                $new_deck.detach();
             });
     });
-    var $edit_btn = $input_group_btn_tmpl.clone();
-    $edit_btn.find('.btn')
-        .addClass('btn-primary');
-    $edit_btn.find('.glyphicon')
-        .addClass('glyphicon-pencil');
-    var $deck_btn = $('<button>')
-        .addClass('btn btn-success form-control')
-        .text(deck_name)
-        .click(function() {
-            window.location.href = sprintf('/deck/%s', deck_name);
-        });
+
+    // When the main button is clicked, go to the page.
+    $navigate_btn.click(function() {
+        window.location.href = `/deck/${deck_name}`;
+    });
+
     // Add the buttons, plus the primary button in the middle.
-    $new_input_group.append($trash_btn);
-    $new_input_group.append($deck_btn);
-    $new_input_group.append($edit_btn);
-    return $new_input_group;
+    return $new_deck;
 };
 /**
  * Generate a Div for the decks and add it to the given $decks div.
  *
  * @class      GenerateDecksDiv (name)
  */
-function GenerateDecksDiv($decks_div) {
+function GenerateDecksDiv() {
     // Get a list of decks from the API.
-    $decks_div.append('<div class="loading">' + '<span class="glyphicon glyphicon-refresh glyphicon-refresh-animate">' +
-        '</span>' + '</div>');
-    $.get('/api/deck', function(response) {
-        // Sort the decks by name.
-        response.objects.sort(function(a, b) {
+    $loader = $(
+        `
+      <div class="loading">
+        <span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>
+      </div>`
+    );
+
+    $('#decks')
+        .append($loader);
+
+    // Display each deck.
+    for (let deck of DECKS) {
+        $loader.before(MakeDeckInputGroup(deck.name));
+    }
+
+    $loader.detach();
+};
+
+// We can generate a list of decks before the page has loaded.
+let DECKS = [];
+let _decks_loading = Deck.LoadAll()
+    .done(function(decks) {
+        DECKS = decks;
+        DECKS.sort(function(a, b) {
             return a.name - b.name;
         });
-        // Add the objects
-        var $loader = $decks_div.find('.loading');
-        for (var deck of response.objects) {
-            $loader.before(NewDeckInputGroup(deck.name));
-        }
-        // Remove the loading icon.
-        $loader.detach();
     });
-};
+
 $(function() {
-    // Re-generate the decks div.
-    var $decks = $('#decks');
-    GenerateDecksDiv($decks);
-    // Setup the click event for creating a new deck.
-    $('#new-deck .plus-circle')
+    // Setup click event on the + icon.
+    $('div.plus-circle')
         .click(function() {
-            // If the new deck form is shown, then just show it and focus it.
-            var $existing_input_group = $('.new-deck');
-            if ($existing_input_group.length > 0) {
-                $existing_input_group.find('input')
+            let $curr_new_deck_form = $('.deck-new');
+            if ($curr_new_deck_form.length > 0) {
+                $curr_new_deck_form.find('input')
                     .focus();
                 return;
             }
-            // Add a new input to the list of decks. This allows the user to type
-            // in a name. When they press enter (or click the check mark), save
-            // the new deck.
-            var $new_input_group = NewDeckInputGroup();
-            // Add a class so we can idenfity it.
-            $new_input_group.addClass('new-deck');
-            // Replace the deck name with an input field.
-            $new_input_group.find('button.btn-success')
-                .replaceWith($('<input type="text" class="form-control" placeholder="name" name="name">'));
-            // Hide the trash button for now.
-            $new_input_group.find('.input-group-btn')
-                .first()
-                .hide();
-            // Change the edit button into a check button.
-            $new_input_group.find('.input-group-btn button')
-                .last()
-                .removeClass('btn-primary')
-                .addClass('btn-success');
-            $new_input_group.find('.input-group-btn button span')
-                .last()
-                .removeClass('glyphicon-pencil')
-                .addClass('glyphicon-ok');
-            // Add this input group to the decks list.
-            $decks.append($new_input_group);
-            $new_input_group.find('input')
+
+            $('#decks')
+                .append(MakeNewDeckInputGroup());
+            $('#decks')
+                .find('input')
                 .focus();
-            // Add events to this button.
-            $new_input_group.find('input')
-                .keypress(function(e) {
-                    if (e.which == 13) {
-                        $new_input_group.find('.btn-success')
-                            .click();
-                    }
-                });
-            $new_input_group.find('.btn-success')
-                .click(function() {
-                    var name = $new_input_group.find('input')
-                        .val();
-                    // Setup a loading icon...
-                    $new_input_group.find('.glyphicon-ok')
-                        .removeClass('glyphicon-ok')
-                        .addClass('glyphicon-refresh glyphicon-refresh-animate');
-                    // Make the new deck!
-                    Deck.New(name)
-                        .done(function() {
-                            $decks.empty();
-                            GenerateDecksDiv($decks);
-                        })
-                        .fail(function(response) {
-                            if (response.message == 'IntegrityError') {
-                                $new_input_group.addClass('has-error')
-                                    .find('input')
-                                    .tooltip({
-                                        placement: 'bottom',
-                                        title: function() {
-                                            return sprintf(
-                                                'The name "%s" is already taken.',
-                                                $new_input_group.find('input')
-                                                .val());
-                                        },
-                                        trigger: 'manual',
-                                    })
-                                    .tooltip('show');
-                            }
-                        })
-                        .always(function() {
-                            $new_input_group.find('.glyphicon')
-                                .removeClass('glyphicon-refresh glyphicon-refresh-animate')
-                                .addClass('glyphicon-ok');
-                        });
-                });
         });
+
+    _decks_loading.always(function() {
+        GenerateDecksDiv();
+    });
 });

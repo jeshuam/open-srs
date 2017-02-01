@@ -59,6 +59,23 @@ class Deck {
         return result;
     }
 
+    static LoadAll() {
+        let result = new $.Deferred();
+        Deck._AJAX('GET', '')
+            .done(function(response) {
+                let decks = [];
+                for (let deck of response.objects) {
+                    decks.push(new Deck(deck.id, deck.name, deck.cards));
+                }
+
+                result.resolve(decks);
+            })
+            .fail(function(jqXHR) {
+                result.reject(jqXHR);
+            });
+        return result;
+    }
+
     /**
      * New - makes a new deck with the given name and saves it to the
      *       database using the JSON API.
