@@ -89,6 +89,23 @@ class CardType {
         return result;
     }
 
+    static LoadAll() {
+        let result = new $.Deferred();
+        CardType._AJAX('GET', '')
+            .done(function(response) {
+                let card_types = [];
+                for (let card_type of response.objects) {
+                    card_types.push(new CardType(card_type.id, card_type.name, card_type.views, card_type.fields));
+                }
+
+                result.resolve(card_types);
+            })
+            .fail(function(jqXHR) {
+                result.reject(jqXHR);
+            });
+        return result;
+    }
+
     /**
      * Save - saves this object back to the database using the JSON API.
      *

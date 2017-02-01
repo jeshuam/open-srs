@@ -1,9 +1,8 @@
 class Deck {
-    constructor(id, name, cards) {
+    constructor(id, name) {
         this._orig_name = name;
         this.id = id;
         this.name = name;
-        this._cards = cards;
     }
     /**
      * _APIUrl - get the API URL string for decks.
@@ -51,7 +50,7 @@ class Deck {
                 // }
                 console.log(response);
 
-                result.resolve(new Deck(response.id, response.name, response.cards));
+                result.resolve(new Deck(response.id, response.name));
             })
             .fail(function(jqXHR) {
                 result.reject(jqXHR);
@@ -65,7 +64,7 @@ class Deck {
             .done(function(response) {
                 let decks = [];
                 for (let deck of response.objects) {
-                    decks.push(new Deck(deck.id, deck.name, deck.cards));
+                    decks.push(new Deck(deck.id, deck.name));
                 }
 
                 result.resolve(decks);
@@ -89,7 +88,7 @@ class Deck {
                 name: name,
             })
             .done(function(response) {
-                result.resolve(new Deck(response.id, response.name, []));
+                result.resolve(new Deck(response.id, response.name));
             })
             .fail(function(jqXHR) {
                 result.reject(jqXHR.responseJSON);
@@ -143,18 +142,7 @@ class Deck {
     }
 
     GetCards() {
-        let result = new $.Deferred();
-        let card_ajaxes = [];
-        for (let _card of this._cards) {
-            card_ajaxes.push(Card.Load(_card.id));
-        }
-
-        $.when.apply($, card_ajaxes)
-            .always(function() {
-                result.resolve(arguments);
-            });
-
-        return result;
+        return Card.LoadCardsIn(this.name);
     }
 
     AddCard(card_type) {

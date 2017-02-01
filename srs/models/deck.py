@@ -37,7 +37,7 @@ api_manager.create_api(
     Deck,
     methods=['GET', 'POST', 'DELETE', 'PUT'],
     primary_key='name',
-    exclude_columns=['stormpath_id'],
+    exclude_columns=['stormpath_id', 'cards'],
     preprocessors=dict(
       POST=[post_add_user_id],
       DELETE=[auth_fn_delete_deck],

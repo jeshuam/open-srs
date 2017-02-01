@@ -16,6 +16,11 @@ def index():
 def decks():
   return render_template('decks.html')
 
+@app.route('/card_types')
+@login_required
+def card_types():
+  return render_template('card_types.html')
+
 
 @app.route('/deck/<string:name>')
 @login_required
