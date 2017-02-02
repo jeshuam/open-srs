@@ -238,6 +238,52 @@ $(function() {
         });
     });
 
+    $('#save').click(function() {
+        let $save_btn = $(this);
+        $save_btn.find('.glyphicon-floppy-disk')
+            .removeClass('glyphicon-floppy-disk')
+            .addClass('glyphicon-refresh glyphicon-refresh-animate');
+
+        CARD_TYPE.Save().done(function() {
+            $save_btn.removeClass('btn-primary').addClass('btn-success');
+            $save_btn.find('.glyphicon-refresh')
+                .removeClass('glyphicon-refresh glyphicon-refresh-animate')
+                .addClass('glyphicon-ok');
+
+            setTimeout(function() {
+                $save_btn.removeClass('btn-success').addClass('btn-primary');
+                $save_btn.find('.glyphicon-ok')
+                    .removeClass('glyphicon-ok')
+                    .addClass('glyphicon-floppy-disk');
+            }, 1000);
+        });
+    });
+
+    $(window).bind('keydown', function(event) {
+        if (event.ctrlKey || event.metaKey) {
+            switch (String.fromCharCode(event.which).toLowerCase()) {
+                case 's':
+                    event.preventDefault();
+                    $('#save').click();
+                    break;
+            }
+        }
+    });
+
+    $('#views .nav').on('click', 'a', function() {
+        $('#save').show();
+        $('#quit').show();
+    });
+
+    $('#quit').click(function() {
+        $('#save').hide();
+        $('#quit').hide();
+        $('#views .active').removeClass('active');
+    })
+
+    $('#save').hide();
+    $('#quit').hide();
+
     _card_type_loading.always(function() {
         GenerateFieldsList();
         PopulateViewTabContent();
@@ -295,59 +341,75 @@ function PopulateViewTabContent() {
         $tab_pane.find('.css > div.editor').attr('id', 'css-' + id);
         $tab_pane.find('.back-code > div.editor').attr('id', 'back-' + id);
 
-        $tab_pane.find('.front-preview').contents().find('body').html(view.front_html);
-        $tab_pane.find('.back-preview').contents().find('body').html(view.back_html);
-
         $view_tab_content.append($tab_pane);
 
-        $tab_pane.find('.front-preview').contents().find('head').append($('<style>').text(view.front_html));
-        $tab_pane.find('.back-preview').contents().find('head').append($('<style>').text(view.back_html));
-        $new_tab.find('a').click();
+        // Add style tags to both.
+        $tab_pane.find('.front-preview').contents().find('head').append('<style>');
+        $tab_pane.find('.back-preview').contents().find('head').append('<style>');
+
+        let doFormat = function(text, fields) {
+            let result = text,
+                failed = false;
+            try {
+                result = nunjucks.renderString(text, fields);
+            } catch (error) {
+                result = error;
+                failed = true;
+            }
+
+            return [result, failed];
+        }
 
         var front_editor = ace.edit('front-' + id);
         front_editor.setTheme('ace/theme/monokai');
         front_editor.getSession().setMode('ace/mode/html');
-        front_editor.setValue(view.front_html);
-        front_editor.getSession().on('change', function() {
-            let html = front_editor.getValue();
-            try {
-                html = nunjucks.renderString(front_editor.getValue(), fields);
-            } catch (_) {
-                // We don't care about errors. It is the user typing, not us.
-            }
-
-            $tab_pane.find('.front-preview').contents().find('body').html(html);
-        });
 
         var css_editor = ace.edit('css-' + id);
         css_editor.setTheme('ace/theme/monokai');
         css_editor.getSession().setMode('ace/mode/css');
-        css_editor.setValue(view.common_css);
         css_editor.getSession().on('change', function() {
-            let css = css_editor.getValue();
-            try {
-                css = nunjucks.renderString(css_editor.getValue(), fields);
-            } catch (_) {
-                // We don't care about errors. It is the user typing, not us.
-            }
-
-            $tab_pane.find('.front-preview').contents().find('style').html(css);
-            $tab_pane.find('.back-preview').contents().find('style').html(css);
+            let formatted = doFormat(css_editor.getValue(), fields);
+            $tab_pane.find('.front-preview').contents().find('style').text(formatted[0]);
+            $tab_pane.find('.back-preview').contents().find('style').text(formatted[0]);
+            view.common_css = css_editor.getValue();
         });
+
+        css_editor.setValue(view.common_css, -1);
 
         var back_editor = ace.edit('back-' + id);
         back_editor.setTheme('ace/theme/monokai');
         back_editor.getSession().setMode('ace/mode/html');
-        back_editor.setValue(view.back_html);
         back_editor.getSession().on('change', function() {
-            let html = back_editor.getValue();
-            try {
-                html = nunjucks.renderString(back_editor.getValue(), fields);
-            } catch (_) {
-                // We don't care about errors. It is the user typing, not us.
+            // Add some custom fields.
+            let new_fields = $.extend({}, fields);
+            new_fields['front'] = doFormat(front_editor.getValue(), fields)[0];
+
+            // Format the back and display it.
+            let formatted = doFormat(back_editor.getValue(), new_fields);
+            let $body = $tab_pane.find('.back-preview').contents().find('body');
+            if (!formatted[1]) {
+                $body.html(formatted[0]);
+            } else {
+                $body.text(formatted[0]);
             }
 
-            $tab_pane.find('.back-preview').contents().find('body').html(html);
+            view.back_html = back_editor.getValue();
         });
+
+        front_editor.getSession().on('change', function() {
+            let formatted = doFormat(front_editor.getValue(), fields);
+            let $body = $tab_pane.find('.front-preview').contents().find('body');
+            if (!formatted[1]) {
+                $body.html(formatted[0]);
+            } else {
+                $body.text(formatted[0]);
+            }
+
+            view.front_html = front_editor.getValue();
+            back_editor.setValue(back_editor.getValue(), -1);
+        });
+
+        front_editor.setValue(view.front_html, -1);
+        back_editor.setValue(view.back_html, -1);
     }
 };

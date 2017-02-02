@@ -1,4 +1,6 @@
-.front-code>div.editor, .css>div.editor, .back-code>div.editor {
+.front-code>div.editor,
+.css>div.editor,
+.back-code>div.editor {
     width: 50%;
     left: 0;
     margin: 0;
@@ -42,7 +44,9 @@ div.header h1 {
     bottom: 0;
 }
 
-.front-code, .css, .back-code {
+.front-code,
+.css,
+.back-code {
     height: 33%;
 }
 
@@ -76,4 +80,53 @@ div.header h1 {
   left: 0;
   right: 0;*/
     background-color: white;
+}
+
+
+/* Save button styles. */
+
+div#save {
+    /* Make the div appear slightly above the bottom of the screen, and take up
+     the whole width. */
+    position: absolute;
+    /*left: 0;*/
+    right: 5%;
+    top: 15%;
+    /* Align the text to the center of the div. */
+    text-align: center;
+    z-index: 10000000;
+}
+
+div#save button {
+    padding-top: 10px;
+}
+
+div#save button span {
+    font-size: 40px;
+    padding: 0;
+    margin: 0;
+    line-height: 40px;
+}
+
+div#quit {
+    /* Make the div appear slightly above the bottom of the screen, and take up
+     the whole width. */
+    position: absolute;
+    /*left: 0;*/
+    right: 5%;
+    top: 5%;
+    /* Align the text to the center of the div. */
+    text-align: center;
+    z-index: 10000000;
+}
+
+div#quit button {
+    padding-top: 10px;
+}
+
+div#quit button span {
+    font-size: 40px;
+    padding: 0;
+    margin: 0;
+    line-height: 40px;
 }
