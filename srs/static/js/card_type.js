@@ -216,7 +216,92 @@ $(function() {
             $input.focus();
         }).click();
 
+    // Views.
+    $('#add-view-tab').click(function() {
+        // Add the tab button and the tab pane.
+        let $tab_content = $('#views .tab-content');
+
+        // The name is the number of tabs found so far + 1.
+        let name = 'Card View ' + $tab_content.find('.tab-pane').length;
+
+        // Add a logical tab content area.
+        CARD_TYPE.views.push({
+            name: name,
+            front_html: '',
+            back_html: '',
+            common_css: '',
+        });
+
+        // Save the card type.
+        CARD_TYPE.Save().done(function() {
+            PopulateViewTabContent();
+        });
+    });
+
     _card_type_loading.always(function() {
         GenerateFieldsList();
+        PopulateViewTabContent();
     });
-});;
+});
+
+let _view_tab_pane_template =
+    `
+<div class="tab-pane">
+  <div class="front-code">
+    <textarea></textarea>
+  </div>
+  <div class="css">
+    <textarea></textarea>
+  </div>
+  <div class="back-code">
+    <textarea></textarea>
+  </div>
+  <iframe class="front-preview">
+    <style></style>
+    <div></div>
+  </iframe>
+  <iframe class="back-preview">
+    <head><style></style></head>
+    <body></body>
+  </iframe>
+</div>
+`
+
+function PopulateViewTabContent() {
+    let $view_tab_content = $('#views .tab-content');
+    $view_tab_content.empty();
+    $('#views .nav-tabs .view-tab-nav').detach();
+
+    for (let view of CARD_TYPE.views) {
+        // Add a new tab, just before this one.
+        let id = 'view-' + view.name.replace(/ /g, '-');
+        let $new_tab = $(`<li><a href="#${id}" class="view-tab-nav" data-toggle="tab">${view.name}</a></li>`);
+        $('#add-view-tab').before($new_tab);
+
+        // Find the corresponding tab-pane.
+        let $tab_pane = $(_view_tab_pane_template).attr('id', id);
+
+        // Add the HTML template to the tab pane.
+        $tab_pane.find('.front-code textarea').text(view.front_html).keyup(function() {
+            $tab_pane.find('.front-preview').contents().find('body').html($(this).val());
+        });
+
+        $tab_pane.find('.css textarea').text(view.common_css).keyup(function() {
+            $tab_pane.find('.front-preview').contents().find('style').text($(this).val());
+            $tab_pane.find('.back-preview').contents().find('style').text($(this).val());
+        });
+
+        $tab_pane.find('.back-code textarea').text(view.back_html).keyup(function() {
+            $tab_pane.find('.back-preview').contents().find('body').html($(this).val());
+        });
+
+        $tab_pane.find('.front-preview').contents().find('body').html(view.front_html);
+        $tab_pane.find('.back-preview').contents().find('body').html(view.back_html);
+
+        $view_tab_content.append($tab_pane);
+
+        $tab_pane.find('.front-preview').contents().find('head').append($('<style>').text(view.front_html));
+        $tab_pane.find('.back-preview').contents().find('head').append($('<style>').text(view.back_html));
+        $new_tab.find('a').click();
+    }
+};

@@ -21,13 +21,13 @@ CARD_TYPE_NAME = '{{ card_type_name }}';
     <div id="card_type">
       <h1>{{ card_type_name }}</h1>
       <ul class="nav nav-tabs">
-        <li class="active"><a href="#fields" role="tab" data-toggle="tab">Fields</a></li>
-        <li><a href="#views" role="tab" data-toggle="tab">Views</a></li>
+        <li class=""><a href="#fields" role="tab" data-toggle="tab">Fields</a></li>
+        <li class="active"><a href="#views" role="tab" data-toggle="tab">Views</a></li>
       </ul>
 
       <!-- Tab panes -->
       <div class="tab-content">
-        <div class="tab-pane active" id="fields">
+        <div class="tab-pane" id="fields">
           <p>
             The order in which fields are shown here is the order they will be shown on the New Card form. Otherwise,
             order has no effect.
@@ -36,8 +36,14 @@ CARD_TYPE_NAME = '{{ card_type_name }}';
           </div>
           <button class="btn btn-default new-field">+</button>
         </div>
-        <div class="tab-pane" id="views">
+        <div class="tab-pane active" id="views">
+          <ul class="nav nav-tabs">
+            <li id="add-view-tab"><a>Add...</a></li>
+          </ul>
 
+          <div class="tab-content">
+
+          </div>
         </div>
       </div>
     </div>

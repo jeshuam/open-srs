@@ -24,6 +24,7 @@ class CardTypeField(db.Model):
 
 class CardTypeView(db.Model):
   id = db.Column(db.Integer, primary_key=True)
+  name = db.Column(db.String(80))
   front_html = db.Column(db.Text())
   back_html = db.Column(db.Text())
   common_css = db.Column(db.Text())
@@ -34,7 +35,10 @@ class CardTypeView(db.Model):
       'CardType',
       backref=db.backref('views', lazy='dynamic'))
 
-  def __init__(self, front_html, back_html, common_css):
+  __table_args__ = (db.UniqueConstraint('name', 'card_type_id'),)
+
+  def __init__(self, name, front_html, back_html, common_css):
+    self.name = name
     self.front_html = front_html
     self.back_html = back_html
     self.common_css = common_css
