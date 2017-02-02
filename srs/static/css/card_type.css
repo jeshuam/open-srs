@@ -1,0 +1,79 @@
+.front-code>div.editor, .css>div.editor, .back-code>div.editor {
+    width: 50%;
+    left: 0;
+    margin: 0;
+    padding: 0;
+    height: 31%;
+    margin-top: 1%;
+    margin-bottom: 1%;
+    position: absolute;
+    display: block;
+}
+
+div.header {
+    text-align: center;
+    width: 10%;
+    height: 33%;
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+div.header h1 {
+    /*display: flex;*/
+    /*flex: 0 1 auto;*/
+}
+
+.tab-pane iframe {
+    right: 0;
+    height: 50%;
+    position: absolute;
+    width: 50%;
+}
+
+.tab-pane iframe.front-preview {
+    top: 0;
+}
+
+.tab-pane iframe.back-preview {
+    bottom: 0;
+}
+
+.front-code, .css, .back-code {
+    height: 33%;
+}
+
+#views .tab-pane {
+    /* flex: 1 1 auto; */
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    position: fixed;
+    z-index: 10000;
+}
+
+.front-code>div {}
+
+.css>div {
+    /*margin-top: 13%;*/
+}
+
+.back-code>div {
+    /*margin-top: 26%;*/
+}
+
+#views .tab-content .tab-pane {
+    /*display: flex;
+  flex-direction: column;
+  height: 100%;*/
+    /*position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  right: 0;*/
+    background-color: white;
+}

@@ -248,13 +248,16 @@ let _view_tab_pane_template =
     `
 <div class="tab-pane">
   <div class="front-code">
-    <textarea></textarea>
+    <div class="header"><h1>Front</h1></div>
+    <div class="editor"></div>
   </div>
   <div class="css">
-    <textarea></textarea>
+    <div class="header"><h1>CSS</h1></div>
+    <div class="editor"></div>
   </div>
   <div class="back-code">
-    <textarea></textarea>
+    <div class="header"><h1>Back</h1></div>
+    <div class="editor"></div>
   </div>
   <iframe class="front-preview">
     <style></style>
@@ -272,6 +275,12 @@ function PopulateViewTabContent() {
     $view_tab_content.empty();
     $('#views .nav-tabs .view-tab-nav').detach();
 
+    // Build a list of fields which can be templated.
+    let fields = {};
+    for (let field of CARD_TYPE.fields) {
+        fields[field.field_name] = `(${field.field_name})`;
+    }
+
     for (let view of CARD_TYPE.views) {
         // Add a new tab, just before this one.
         let id = 'view-' + view.name.replace(/ /g, '-');
@@ -282,18 +291,9 @@ function PopulateViewTabContent() {
         let $tab_pane = $(_view_tab_pane_template).attr('id', id);
 
         // Add the HTML template to the tab pane.
-        $tab_pane.find('.front-code textarea').text(view.front_html).keyup(function() {
-            $tab_pane.find('.front-preview').contents().find('body').html($(this).val());
-        });
-
-        $tab_pane.find('.css textarea').text(view.common_css).keyup(function() {
-            $tab_pane.find('.front-preview').contents().find('style').text($(this).val());
-            $tab_pane.find('.back-preview').contents().find('style').text($(this).val());
-        });
-
-        $tab_pane.find('.back-code textarea').text(view.back_html).keyup(function() {
-            $tab_pane.find('.back-preview').contents().find('body').html($(this).val());
-        });
+        $tab_pane.find('.front-code > div.editor').attr('id', 'front-' + id);
+        $tab_pane.find('.css > div.editor').attr('id', 'css-' + id);
+        $tab_pane.find('.back-code > div.editor').attr('id', 'back-' + id);
 
         $tab_pane.find('.front-preview').contents().find('body').html(view.front_html);
         $tab_pane.find('.back-preview').contents().find('body').html(view.back_html);
@@ -303,5 +303,51 @@ function PopulateViewTabContent() {
         $tab_pane.find('.front-preview').contents().find('head').append($('<style>').text(view.front_html));
         $tab_pane.find('.back-preview').contents().find('head').append($('<style>').text(view.back_html));
         $new_tab.find('a').click();
+
+        var front_editor = ace.edit('front-' + id);
+        front_editor.setTheme('ace/theme/monokai');
+        front_editor.getSession().setMode('ace/mode/html');
+        front_editor.setValue(view.front_html);
+        front_editor.getSession().on('change', function() {
+            let html = front_editor.getValue();
+            try {
+                html = nunjucks.renderString(front_editor.getValue(), fields);
+            } catch (_) {
+                // We don't care about errors. It is the user typing, not us.
+            }
+
+            $tab_pane.find('.front-preview').contents().find('body').html(html);
+        });
+
+        var css_editor = ace.edit('css-' + id);
+        css_editor.setTheme('ace/theme/monokai');
+        css_editor.getSession().setMode('ace/mode/css');
+        css_editor.setValue(view.common_css);
+        css_editor.getSession().on('change', function() {
+            let css = css_editor.getValue();
+            try {
+                css = nunjucks.renderString(css_editor.getValue(), fields);
+            } catch (_) {
+                // We don't care about errors. It is the user typing, not us.
+            }
+
+            $tab_pane.find('.front-preview').contents().find('style').html(css);
+            $tab_pane.find('.back-preview').contents().find('style').html(css);
+        });
+
+        var back_editor = ace.edit('back-' + id);
+        back_editor.setTheme('ace/theme/monokai');
+        back_editor.getSession().setMode('ace/mode/html');
+        back_editor.setValue(view.back_html);
+        back_editor.getSession().on('change', function() {
+            let html = back_editor.getValue();
+            try {
+                html = nunjucks.renderString(back_editor.getValue(), fields);
+            } catch (_) {
+                // We don't care about errors. It is the user typing, not us.
+            }
+
+            $tab_pane.find('.back-preview').contents().find('body').html(html);
+        });
     }
 };
