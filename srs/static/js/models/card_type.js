@@ -113,7 +113,12 @@ class CardType {
      */
     Save() {
         let result = new $.Deferred();
-        CardType._AJAX('PUT', this._orig_name, {
+        console.log({
+            name: this.name,
+            views: this.views,
+            fields: this.fields,
+        });
+        CardType._AJAX('PUT', '/' + this._orig_name, {
                 name: this.name,
                 views: this.views,
                 fields: this.fields,

@@ -1,0 +1,47 @@
+{% extends "_common.html" %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/card_type.css') }}">
+{% endblock %}
+
+{% block js %}
+<script type="text/javascript">
+
+CARD_TYPE_NAME = '{{ card_type_name }}';
+
+</script>
+<script src="{{ url_for('static', filename='js/card_type.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+  <div class="col-sm-4 col-lg-3"></div>
+  <div class="col-sm-4 col-lg-5">
+    <div id="card_type">
+      <h1>{{ card_type_name }}</h1>
+      <ul class="nav nav-tabs">
+        <li class="active"><a href="#fields" role="tab" data-toggle="tab">Fields</a></li>
+        <li><a href="#views" role="tab" data-toggle="tab">Views</a></li>
+      </ul>
+
+      <!-- Tab panes -->
+      <div class="tab-content">
+        <div class="tab-pane active" id="fields">
+          <p>
+            The order in which fields are shown here is the order they will be shown on the New Card form. Otherwise,
+            order has no effect.
+          </p>
+          <div id="field-list">
+          </div>
+          <button class="btn btn-default new-field">+</button>
+        </div>
+        <div class="tab-pane" id="views">
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

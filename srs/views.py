@@ -26,3 +26,8 @@ def card_types():
 @login_required
 def deck(name):
   return render_template('deck.html', deck_name=name)
+
+@app.route('/card_type/<string:name>')
+@login_required
+def card_type(name):
+  return render_template('card_type.html', card_type_name=name)

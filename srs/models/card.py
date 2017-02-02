@@ -7,6 +7,7 @@ from flask_stormpath import user
 class CardTypeField(db.Model):
   id = db.Column(db.Integer, primary_key=True)
   field_name = db.Column(db.String(80))
+  field_pos = db.Column(db.Integer)
 
   # Each CardTypeField belongs to exactly one CardType.
   card_type_id = db.Column(db.Integer, db.ForeignKey('card_type.id'))
@@ -14,8 +15,11 @@ class CardTypeField(db.Model):
       'CardType',
       backref=db.backref('fields', lazy='dynamic'))
 
-  def __init__(self, field_name):
+  __table_args__ = (db.UniqueConstraint('field_name', 'card_type_id'),)
+
+  def __init__(self, field_name, field_pos):
     self.field_name = field_name
+    self.field_pos = field_pos
 
 
 class CardTypeView(db.Model):
