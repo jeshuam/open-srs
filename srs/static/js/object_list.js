@@ -110,7 +110,7 @@ function _make_new_row(object, name_key, delete_fn, edit_fn, navigate_fn) {
         <span class="glyphicon glyphicon-trash"></span>
       </button>
     </div>
-    <button class="navigate-button btn btn-success form-control">${object[name_key]}</button>
+    <div class="navigate-button btn btn-success form-control">${object[name_key]}</div>
     <input style="display:none;" type="text" class="form-control" />
     <div class="input-group-btn">
       <button class="edit-button btn btn-primary">
@@ -202,6 +202,7 @@ function _make_new_row(object, name_key, delete_fn, edit_fn, navigate_fn) {
  *                                class "object-list". It must be a div.
  * @param  {Object[]} objects     A list of objects to create rows for.
  * @param  {string}   name_key    The key within `object` which can be accessed to get the string name.
+ * @param  {string}   sort_key    The key within `object` which cam be used to sort them.
  * @param  {function} delete_fn   A function to call when the object is deleted. This should return a Promise-like
  *                                object which, when complete, resolves with no argument.
  * @param  {function} edit_fn     A function to call when the object has been edited. This should take a single argument
@@ -214,7 +215,7 @@ function _make_new_row(object, name_key, delete_fn, edit_fn, navigate_fn) {
  *                                database. This function should return a Promise-like object which, on .done(), provides
  *                                the fully (and newly saved) object.
  */
-function MakeObjectList($container, objects, name_key, delete_fn, edit_fn, navigate_fn, new_fn) {
+function MakeObjectList($container, objects, name_key, sort_key, delete_fn, edit_fn, navigate_fn, new_fn) {
     // Add a loader to the container.
     $loader = $(
         `
@@ -227,8 +228,8 @@ function MakeObjectList($container, objects, name_key, delete_fn, edit_fn, navig
 
     // Sort the objects based on their name.
     objects.sort(function(a, b) {
-        if (a[name_key] < b[name_key]) return -1;
-        if (a[name_key] > b[name_key]) return 1;
+        if (a[sort_key] < b[sort_key]) return -1;
+        if (a[sort_key] > b[sort_key]) return 1;
         return 0;
     });
 

@@ -71,13 +71,12 @@ class CardTypeView(db.Model):
         db.UniqueConstraint('name', 'card_type_id'),
     )
 
-    def __init__(self, name, front_html, back_html, common_css, card_type_id):
+    def __init__(self, name, front_html, back_html, common_css):
         """Make a new CardTypeView given all fields."""
         self.name = name
         self.front_html = front_html
         self.back_html = back_html
         self.common_css = common_css
-        self.card_type_id = card_type_id
 
 
 class CardType(db.Model):

@@ -141,12 +141,12 @@ class CardType {
         for (let field of this.fields) {
             if (values) {
                 if (field in values) {
-                    fields[field.field_name] = values[field];
+                    fields[field.name] = values[field];
                 } else {
-                    fields[field.field_name] = '';
+                    fields[field.name] = '';
                 }
             } else {
-                fields[field.field_name] = `(${field.field_name})`;
+                fields[field.name] = `(${field.name})`;
             }
         }
 

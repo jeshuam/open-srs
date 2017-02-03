@@ -1,6 +1,7 @@
 {% extends "_common.html" %}
 
 {% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/object_list.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/card_type.css') }}">
 {% endblock %}
 
@@ -12,6 +13,7 @@ CARD_TYPE_NAME = '{{ card_type_name }}';
 </script>
 <script src="{{ url_for('static', filename='js/lib/ace/ace.js') }}"></script>
 <script src="{{ url_for('static', filename='js/lib/nunjucks.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/object_list.js') }}"></script>
 <script src="{{ url_for('static', filename='js/card_type.js') }}"></script>
 {% endblock %}
 
@@ -24,23 +26,15 @@ CARD_TYPE_NAME = '{{ card_type_name }}';
       <h1>{{ card_type_name }}</h1>
 
       <h2>Fields</h2>
-      <div id="fields">
-        <p>
-          The order in which fields are shown here is the order they will be shown on the New Card form. Otherwise,
-          order has no effect.
-        </p>
-        <div id="field-list">
-        </div>
-        <button class="btn btn-default new-field">+</button>
-      </div>
+      <p>The order in which fields are shown here is the order they will be shown on the New Card form. Otherwise,
+      order has no effect.</p>
+      <div class="object-list" id="fields"></div>
 
       <h3>Views</h3>
       <a id="show-views">Click to show view editor</a>
-      <div id="view-list">
-      </div>
+      <div class="object-list" id="view-list"></div>
       <div id="views" style="display:none;">
         <ul class="nav nav-tabs">
-          <li id="add-view-tab"><a>Add...</a></li>
           <div id="controls">
             <button class="btn btn-primary"><span class="glyphicon glyphicon-floppy-disk"></span></button>
             <button class="btn btn-danger"><span class="glyphicon glyphicon-remove"></span></button>

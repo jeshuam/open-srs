@@ -24,11 +24,6 @@ div.header {
     justify-content: center;
 }
 
-div.header h1 {
-    /*display: flex;*/
-    /*flex: 0 1 auto;*/
-}
-
 .tab-pane iframe {
     right: 0;
     height: 50%;

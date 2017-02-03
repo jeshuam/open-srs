@@ -7,7 +7,7 @@ let _decks_loading = Deck.LoadAll()
 
 $(function() {
     _decks_loading.always(function() {
-        MakeObjectList($('#decks'), DECKS, 'name', function(deck) {
+        MakeObjectList($('#decks'), DECKS, 'name', 'name', function(deck) {
             return Deck.Delete(deck.name);
         }, function(deck, new_name) {
             deck.name = new_name;
