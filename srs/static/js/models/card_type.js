@@ -1,6 +1,5 @@
 class CardType {
-    constructor(id, name, views, fields) {
-        this.id = id;
+    constructor(name, views, fields) {
         this._orig_name = name;
         this.name = name;
         this.views = views;
@@ -42,7 +41,7 @@ class CardType {
         let result = new $.Deferred();
         CardType._AJAX('GET', '/' + name)
             .done(function(response) {
-                result.resolve(new CardType(response.id, response.name, response.views, response.fields));
+                result.resolve(new CardType(response.name, response.views, response.fields));
             })
             .fail(function(jqXHR) {
                 result.reject();
@@ -62,7 +61,7 @@ class CardType {
                 name: name,
             })
             .done(function(response) {
-                result.resolve(new CardType(response.id, response.name, [], []));
+                result.resolve(new CardType(response.name, [], []));
             })
             .fail(function(jqXHR) {
                 result.reject(jqXHR.responseJSON);
@@ -95,7 +94,7 @@ class CardType {
             .done(function(response) {
                 let card_types = [];
                 for (let card_type of response.objects) {
-                    card_types.push(new CardType(card_type.id, card_type.name, card_type.views, card_type.fields));
+                    card_types.push(new CardType(card_type.name, card_type.views, card_type.fields));
                 }
 
                 result.resolve(card_types);
@@ -113,28 +112,25 @@ class CardType {
      */
     Save() {
         let result = new $.Deferred();
-        console.log({
-            name: this.name,
-            views: this.views,
-            fields: this.fields,
-        });
+        let card_type = this;
         CardType._AJAX('PUT', '/' + this._orig_name, {
                 name: this.name,
                 views: this.views,
                 fields: this.fields,
             })
             .done(function(response) {
-                this._orig_name == this.name;
+                card_type._orig_name == card_type.name;
                 result.resolve();
             })
             .fail(function(jqXHR) {
-                // If the name has changed, this might be why. Let's assume it
-                // is the case for now.
-                if (this._orig_name != this.name) {
-                    this._orig_name = this.name;
+                // If we got a 404, it means the deck name changed.
+                // That's not really a problem.
+                if (jqXHR.status == 404) {
+                    card_type._orig_name = card_type.name;
                     result.resolve();
                     return;
                 }
+
                 result.reject(jqXHR.responseJSON);
             });
         return result;

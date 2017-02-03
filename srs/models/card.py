@@ -111,7 +111,7 @@ class CardType(db.Model):
         return (db.session.query(cls)
                 .filter_by(stormpath_id=util.StormpathIDFromHREF(user.href)))
 
-    def __init__(self, id, stormpath_id, name):
+    def __init__(self, stormpath_id, name):
         """Make a new CardType given all fields."""
         self.stormpath_id = stormpath_id
         self.name = name
