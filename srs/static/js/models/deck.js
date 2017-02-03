@@ -1,7 +1,6 @@
 class Deck {
-    constructor(id, name) {
+    constructor(name) {
         this._orig_name = name;
-        this.id = id;
         this.name = name;
     }
     /**
@@ -50,7 +49,7 @@ class Deck {
                 // }
                 console.log(response);
 
-                result.resolve(new Deck(response.id, response.name));
+                result.resolve(new Deck(response.name));
             })
             .fail(function(jqXHR) {
                 result.reject(jqXHR);
@@ -64,7 +63,7 @@ class Deck {
             .done(function(response) {
                 let decks = [];
                 for (let deck of response.objects) {
-                    decks.push(new Deck(deck.id, deck.name));
+                    decks.push(new Deck(deck.name));
                 }
 
                 result.resolve(decks);
@@ -88,7 +87,7 @@ class Deck {
                 name: name,
             })
             .done(function(response) {
-                result.resolve(new Deck(response.id, response.name));
+                result.resolve(new Deck(response.name));
             })
             .fail(function(jqXHR) {
                 result.reject(jqXHR.responseJSON);
@@ -121,21 +120,23 @@ class Deck {
      */
     Save() {
         let result = new $.Deferred();
+        let deck = this;
         Deck._AJAX('PUT', '/' + this._orig_name, {
                 name: this.name
             })
             .done(function(response) {
-                this._orig_name = this.name;
+                deck._orig_name = deck.name;
                 result.resolve();
             })
             .fail(function(jqXHR) {
-                // If the name has changed, this might be why. Let's assume it
-                // is the case for now.
-                if (this._orig_name != this.name) {
-                    this._orig_name = this.name;
+                // If we got a 404, it means the deck name changed.
+                // That's not really a problem.
+                if (jqXHR.status == 404) {
+                    deck._orig_name = deck.name;
                     result.resolve();
                     return;
                 }
+
                 result.reject(jqXHR.responseJSON);
             });
         return result;

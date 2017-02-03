@@ -1,0 +1,12 @@
+div.object-list .loading {
+    font-size: 1.5em;
+    text-align: center;
+}
+
+div.object-list .input-group {
+    margin-bottom: 20px;
+}
+
+div.object-list .new-btn {
+    text-align: center;
+}

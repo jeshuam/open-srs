@@ -1,10 +1,11 @@
 {% extends "_common.html" %}
 
 {% block css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/decks.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/object_list.css') }}">
 {% endblock %}
 
 {% block js %}
+<script src="{{ url_for('static', filename='js/object_list.js') }}"></script>
 <script src="{{ url_for('static', filename='js/decks.js') }}"></script>
 {% endblock %}
 
@@ -13,14 +14,9 @@
 <div class="row">
   <div class="col-sm-4 col-lg-3"></div>
   <div class="col-sm-4 col-lg-5">
-    <div id="decks">
+    <div class="object-list" id="decks">
     </div>
   </div>
-</div>
-
-<!-- Plus button for adding new decks -->
-<div id="new-deck">
-  <div class="plus-circle btn btn-primary">+</div>
 </div>
 
 {% endblock %}
