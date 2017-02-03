@@ -22,42 +22,37 @@ CARD_TYPE_NAME = '{{ card_type_name }}';
   <div class="col-sm-4 col-lg-5">
     <div id="card_type">
       <h1>{{ card_type_name }}</h1>
-      <ul class="nav nav-tabs">
-        <li class=""><a href="#fields" role="tab" data-toggle="tab">Fields</a></li>
-        <li class="active"><a href="#views" role="tab" data-toggle="tab">Views</a></li>
-      </ul>
 
-      <!-- Tab panes -->
-      <div class="tab-content">
-        <div class="tab-pane" id="fields">
-          <p>
-            The order in which fields are shown here is the order they will be shown on the New Card form. Otherwise,
-            order has no effect.
-          </p>
-          <div id="field-list">
-          </div>
-          <button class="btn btn-default new-field">+</button>
+      <h2>Fields</h2>
+      <div id="fields">
+        <p>
+          The order in which fields are shown here is the order they will be shown on the New Card form. Otherwise,
+          order has no effect.
+        </p>
+        <div id="field-list">
         </div>
-        <div class="tab-pane active" id="views">
-          <ul class="nav nav-tabs">
-            <li id="add-view-tab"><a>Add...</a></li>
-          </ul>
+        <button class="btn btn-default new-field">+</button>
+      </div>
 
-          <div class="tab-content">
-
+      <h3>Views</h3>
+      <a id="show-views">Click to show view editor</a>
+      <div id="view-list">
+      </div>
+      <div id="views" style="display:none;">
+        <ul class="nav nav-tabs">
+          <li id="add-view-tab"><a>Add...</a></li>
+          <div id="controls">
+            <button class="btn btn-primary"><span class="glyphicon glyphicon-floppy-disk"></span></button>
+            <button class="btn btn-danger"><span class="glyphicon glyphicon-remove"></span></button>
           </div>
+        </ul>
+
+        <div class="tab-content">
+
         </div>
       </div>
     </div>
   </div>
-</div>
-
-<div id="save">
-  <button class="btn btn-primary"><span class="glyphicon glyphicon-floppy-disk"></span></button>
-</div>
-
-<div id="quit">
-  <button class="btn btn-default"><span class="glyphicon glyphicon-remove"></span></button>
 </div>
 
 {% endblock %}

@@ -139,4 +139,21 @@ class CardType {
             });
         return result;
     }
+
+    GetFieldsMap(values) {
+        let fields = {};
+        for (let field of this.fields) {
+            if (values) {
+                if (field in values) {
+                    fields[field.field_name] = values[field];
+                } else {
+                    fields[field.field_name] = '';
+                }
+            } else {
+                fields[field.field_name] = `(${field.field_name})`;
+            }
+        }
+
+        return fields;
+    }
 };

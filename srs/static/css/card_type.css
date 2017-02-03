@@ -3,12 +3,12 @@
 .back-code>div.editor {
     width: 50%;
     left: 0;
+    /*top: 100px;*/
     margin: 0;
     padding: 0;
-    height: 31%;
-    margin-top: 1%;
-    margin-bottom: 1%;
-    position: absolute;
+    height: 100%;
+    /*margin-bottom: 10px;*/
+    /*position: absolute;*/
     display: block;
 }
 
@@ -48,15 +48,26 @@ div.header h1 {
 .css,
 .back-code {
     height: 33%;
+    margin-bottom: 5px;
+}
+
+#views {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000000000;
+    background-color: white;
 }
 
 #views .tab-pane {
     /* flex: 1 1 auto; */
     left: 0;
-    top: 0;
-    height: 100%;
-    width: 100%;
-    position: fixed;
+    top: 42px;
+    /*height: 100%;*/
+    bottom: 0px;
+    position: absolute;
     z-index: 10000;
 }
 
@@ -85,48 +96,11 @@ div.header h1 {
 
 /* Save button styles. */
 
-div#save {
-    /* Make the div appear slightly above the bottom of the screen, and take up
-     the whole width. */
-    position: absolute;
-    /*left: 0;*/
-    right: 5%;
-    top: 15%;
-    /* Align the text to the center of the div. */
-    text-align: center;
-    z-index: 10000000;
+div#controls {
+    text-align: right;
+    margin-top: 3px;
 }
 
-div#save button {
-    padding-top: 10px;
-}
-
-div#save button span {
-    font-size: 40px;
-    padding: 0;
-    margin: 0;
-    line-height: 40px;
-}
-
-div#quit {
-    /* Make the div appear slightly above the bottom of the screen, and take up
-     the whole width. */
-    position: absolute;
-    /*left: 0;*/
-    right: 5%;
-    top: 5%;
-    /* Align the text to the center of the div. */
-    text-align: center;
-    z-index: 10000000;
-}
-
-div#quit button {
-    padding-top: 10px;
-}
-
-div#quit button span {
-    font-size: 40px;
-    padding: 0;
-    margin: 0;
-    line-height: 40px;
+div#views .view-tab-nav {
+    display: inline-block;
 }

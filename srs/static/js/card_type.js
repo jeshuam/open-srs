@@ -20,6 +20,62 @@ function UpdateFieldList() {
     CARD_TYPE.fields = new_fields;
 }
 
+function MakeViewHtml(view_name) {
+    let template =
+        `
+<div class="input-group view">
+  <div class="input-group-btn">
+    <button class="btn btn-danger">
+      <span class="glyphicon glyphicon-trash"></span>
+    </button>
+  </div>
+  <div class="btn btn-success form-control">${view_name}</div>
+  <div class="input-group-btn">
+    <button class="btn btn-primary">
+      <span class="glyphicon glyphicon-pencil"></span>
+    </button>
+  </div>
+</div>`
+
+    let $new_view_html = $(template);
+
+    // Extract some key elements.
+    let $delete_btn = $new_view_html.find('.btn-danger');
+    let $edit_btn = $new_view_html.find('.btn-primary');
+    let $navigate_btn = $new_view_html.find('.btn-success');
+
+    // When the trash button is pressed, delete it.
+    $delete_btn.click(function() {
+        let $this = $(this);
+        $delete_btn.find('.glyphicon-trash')
+            .removeClass('glyphicon-trash')
+            .addClass('glyphicon-refresh glyphicon-refresh-animate');
+
+        // Remove this field from the field list.
+        let matches = $.grep(CARD_TYPE.views, function(v) {
+            return v.name === view_name;
+        });
+
+        if (matches.length != 1) {
+            console.log('PANIC');
+        }
+
+        let index = CARD_TYPE.views.indexOf(matches[0]);
+        if (index >= 0) {
+            CARD_TYPE.views.splice(index, 1);
+        }
+
+        // Save the card type.
+        CARD_TYPE.Save().done(function() {
+            $this.parents('.view').detach();
+            GenerateViewList();
+        });
+    });
+
+    // Add the buttons, plus the primary button in the middle.
+    return $new_view_html;
+}
+
 function MakeFieldHtml(field_name) {
     let template =
         `
@@ -91,6 +147,26 @@ function GenerateFieldsList() {
     // Display each deck.
     for (let field of CARD_TYPE.fields) {
         $('#fields div#field-list').append(MakeFieldHtml(field.field_name));
+    }
+
+    $loader.detach();
+}
+
+function GenerateViewList() {
+    // Get a list of decks from the API.
+    $loader = $(
+        `
+    <div class="loading">
+      <span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>
+    </div>`
+    );
+
+    $('#view-list div.view').detach();
+    $('#view-list').append($loader);
+
+    // Display each deck.
+    for (let view of CARD_TYPE.views) {
+        $('#view-list').append(MakeViewHtml(view.name));
     }
 
     $loader.detach();
@@ -214,7 +290,7 @@ $(function() {
             $('#fields').append($new_field_html);
             $('#fields > button').detach();
             $input.focus();
-        }).click();
+        });
 
     // Views.
     $('#add-view-tab').click(function() {
@@ -234,11 +310,11 @@ $(function() {
 
         // Save the card type.
         CARD_TYPE.Save().done(function() {
-            PopulateViewTabContent();
+            PopulateViewTabContent(CARD_TYPE.views[CARD_TYPE.views.length - 1]);
         });
     });
 
-    $('#save').click(function() {
+    $('#controls .btn-primary').click(function() {
         let $save_btn = $(this);
         $save_btn.find('.glyphicon-floppy-disk')
             .removeClass('glyphicon-floppy-disk')
@@ -264,35 +340,50 @@ $(function() {
             switch (String.fromCharCode(event.which).toLowerCase()) {
                 case 's':
                     event.preventDefault();
-                    $('#save').click();
+                    $('#controls .btn-primary').click();
+                    break;
+            }
+        } else {
+            switch (event.which) {
+                case 27:
+                    event.preventDefault();
+                    $('#controls .btn-danger').click();
                     break;
             }
         }
     });
 
-    $('#views .nav').on('click', 'a', function() {
-        $('#save').show();
-        $('#quit').show();
-    });
-
-    $('#quit').click(function() {
-        $('#save').hide();
-        $('#quit').hide();
-        $('#views .active').removeClass('active');
+    $('#show-views').click(function() {
+        $('#views').show();
     })
 
-    $('#save').hide();
-    $('#quit').hide();
+    $('#views .nav').on('click', 'a', function() {
+        // $('#save').show();
+        // $('#quit').show();
+    });
+
+    $('#controls .btn-danger').click(function() {
+        // $('#save').hide();
+        // $('#quit').hide();
+        $('#views').hide();
+    })
+
+    // $('#save').hide();
+    // $('#quit').hide();
 
     _card_type_loading.always(function() {
+        GenerateViewList();
         GenerateFieldsList();
-        PopulateViewTabContent();
+
+        for (let view of CARD_TYPE.views) {
+            PopulateViewTabContent(view);
+        }
     });
 });
 
 let _view_tab_pane_template =
     `
-<div class="tab-pane">
+<div class="tab-pane col-lg-12 col-sm-12 col-md-12">
   <div class="front-code">
     <div class="header"><h1>Front</h1></div>
     <div class="editor"></div>
@@ -316,100 +407,97 @@ let _view_tab_pane_template =
 </div>
 `
 
-function PopulateViewTabContent() {
+let _view_tab_template =
+    `
+<li>
+  <a class="view-tab-nav" data-toggle="tab"></a>
+</li>
+`
+
+function PopulateViewTabContent(view) {
+    // Add a new tab, just before this one.
+    let id = 'view-' + view.name.replace(/ /g, '-');
+    let $new_tab = $(_view_tab_template);
+    $new_tab.find('a').attr('href', '#' + id).text(view.name);
+    $('#add-view-tab').before($new_tab);
+
+    // Find the corresponding tab-pane.
+    let $tab_pane = $(_view_tab_pane_template).attr('id', id);
+
+    // Add the HTML template to the tab pane.
+    $tab_pane.find('.front-code > div.editor').attr('id', 'front-' + id);
+    $tab_pane.find('.css > div.editor').attr('id', 'css-' + id);
+    $tab_pane.find('.back-code > div.editor').attr('id', 'back-' + id);
+
     let $view_tab_content = $('#views .tab-content');
-    $view_tab_content.empty();
-    $('#views .nav-tabs .view-tab-nav').detach();
+    $view_tab_content.append($tab_pane);
 
-    // Build a list of fields which can be templated.
-    let fields = {};
-    for (let field of CARD_TYPE.fields) {
-        fields[field.field_name] = `(${field.field_name})`;
-    }
+    // Add style tags to both.
+    $tab_pane.find('.front-preview').contents().find('head').append('<style>');
+    $tab_pane.find('.back-preview').contents().find('head').append('<style>');
 
-    for (let view of CARD_TYPE.views) {
-        // Add a new tab, just before this one.
-        let id = 'view-' + view.name.replace(/ /g, '-');
-        let $new_tab = $(`<li><a href="#${id}" class="view-tab-nav" data-toggle="tab">${view.name}</a></li>`);
-        $('#add-view-tab').before($new_tab);
-
-        // Find the corresponding tab-pane.
-        let $tab_pane = $(_view_tab_pane_template).attr('id', id);
-
-        // Add the HTML template to the tab pane.
-        $tab_pane.find('.front-code > div.editor').attr('id', 'front-' + id);
-        $tab_pane.find('.css > div.editor').attr('id', 'css-' + id);
-        $tab_pane.find('.back-code > div.editor').attr('id', 'back-' + id);
-
-        $view_tab_content.append($tab_pane);
-
-        // Add style tags to both.
-        $tab_pane.find('.front-preview').contents().find('head').append('<style>');
-        $tab_pane.find('.back-preview').contents().find('head').append('<style>');
-
-        let doFormat = function(text, fields) {
-            let result = text,
-                failed = false;
-            try {
-                result = nunjucks.renderString(text, fields);
-            } catch (error) {
-                result = error;
-                failed = true;
-            }
-
-            return [result, failed];
+    let doFormat = function(text, fields) {
+        let result = text,
+            failed = false;
+        try {
+            result = nunjucks.renderString(text, fields);
+        } catch (error) {
+            result = error;
+            failed = true;
         }
 
-        var front_editor = ace.edit('front-' + id);
-        front_editor.setTheme('ace/theme/monokai');
-        front_editor.getSession().setMode('ace/mode/html');
-
-        var css_editor = ace.edit('css-' + id);
-        css_editor.setTheme('ace/theme/monokai');
-        css_editor.getSession().setMode('ace/mode/css');
-        css_editor.getSession().on('change', function() {
-            let formatted = doFormat(css_editor.getValue(), fields);
-            $tab_pane.find('.front-preview').contents().find('style').text(formatted[0]);
-            $tab_pane.find('.back-preview').contents().find('style').text(formatted[0]);
-            view.common_css = css_editor.getValue();
-        });
-
-        css_editor.setValue(view.common_css, -1);
-
-        var back_editor = ace.edit('back-' + id);
-        back_editor.setTheme('ace/theme/monokai');
-        back_editor.getSession().setMode('ace/mode/html');
-        back_editor.getSession().on('change', function() {
-            // Add some custom fields.
-            let new_fields = $.extend({}, fields);
-            new_fields['front'] = doFormat(front_editor.getValue(), fields)[0];
-
-            // Format the back and display it.
-            let formatted = doFormat(back_editor.getValue(), new_fields);
-            let $body = $tab_pane.find('.back-preview').contents().find('body');
-            if (!formatted[1]) {
-                $body.html(formatted[0]);
-            } else {
-                $body.text(formatted[0]);
-            }
-
-            view.back_html = back_editor.getValue();
-        });
-
-        front_editor.getSession().on('change', function() {
-            let formatted = doFormat(front_editor.getValue(), fields);
-            let $body = $tab_pane.find('.front-preview').contents().find('body');
-            if (!formatted[1]) {
-                $body.html(formatted[0]);
-            } else {
-                $body.text(formatted[0]);
-            }
-
-            view.front_html = front_editor.getValue();
-            back_editor.setValue(back_editor.getValue(), -1);
-        });
-
-        front_editor.setValue(view.front_html, -1);
-        back_editor.setValue(view.back_html, -1);
+        return [result, failed];
     }
+
+    var front_editor = ace.edit('front-' + id);
+    front_editor.setTheme('ace/theme/monokai');
+    front_editor.getSession().setMode('ace/mode/html');
+
+    var css_editor = ace.edit('css-' + id);
+    css_editor.setTheme('ace/theme/monokai');
+    css_editor.getSession().setMode('ace/mode/css');
+    css_editor.getSession().on('change', function() {
+        let formatted = doFormat(css_editor.getValue(), CARD_TYPE.GetFieldsMap());
+        $tab_pane.find('.front-preview').contents().find('style').text(formatted[0]);
+        $tab_pane.find('.back-preview').contents().find('style').text(formatted[0]);
+        view.common_css = css_editor.getValue();
+    });
+
+    css_editor.setValue(view.common_css, -1);
+
+    var back_editor = ace.edit('back-' + id);
+    back_editor.setTheme('ace/theme/monokai');
+    back_editor.getSession().setMode('ace/mode/html');
+    back_editor.getSession().on('change', function() {
+        // Add some custom fields.
+        let new_fields = $.extend({}, CARD_TYPE.GetFieldsMap());
+        new_fields['front'] = doFormat(front_editor.getValue(), CARD_TYPE.GetFieldsMap())[0];
+
+        // Format the back and display it.
+        let formatted = doFormat(back_editor.getValue(), new_fields);
+        let $body = $tab_pane.find('.back-preview').contents().find('body');
+        if (!formatted[1]) {
+            $body.html(formatted[0]);
+        } else {
+            $body.text(formatted[0]);
+        }
+
+        view.back_html = back_editor.getValue();
+    });
+
+    front_editor.getSession().on('change', function() {
+        let formatted = doFormat(front_editor.getValue(), CARD_TYPE.GetFieldsMap());
+        let $body = $tab_pane.find('.front-preview').contents().find('body');
+        if (!formatted[1]) {
+            $body.html(formatted[0]);
+        } else {
+            $body.text(formatted[0]);
+        }
+
+        view.front_html = front_editor.getValue();
+        back_editor.setValue(back_editor.getValue(), -1);
+    });
+
+    front_editor.setValue(view.front_html, -1);
+    back_editor.setValue(view.back_html, -1);
 };
