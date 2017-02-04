@@ -110,7 +110,7 @@ function _make_new_row(object, name_key, delete_fn, edit_fn, navigate_fn) {
         <span class="glyphicon glyphicon-trash"></span>
       </button>
     </div>
-    <div class="navigate-button btn btn-success form-control">${object[name_key]}</div>
+    <div class="navigate-button btn btn-success form-control"></div>
     <input style="display:none;" type="text" class="form-control" />
     <div class="input-group-btn">
       <button class="edit-button btn btn-primary">
@@ -131,6 +131,13 @@ function _make_new_row(object, name_key, delete_fn, edit_fn, navigate_fn) {
     let $edit_save_btn = $row.find('.edit-save-button');
     let $navigate_btn = $row.find('.navigate-button');
     let $input = $row.find('input');
+
+    // Set the text on the navigate button.
+    if (name_key) {
+        $navigate_btn.text(object[name_key]);
+    } else {
+        $navigate_btn.text(object);
+    }
 
     // On navigate...
     $navigate_btn.click(function() {
@@ -196,7 +203,7 @@ function _make_new_row(object, name_key, delete_fn, edit_fn, navigate_fn) {
 }
 
 /**
- * MakeRows - The main interface function of this library; make a set of rows and add them to the given container.
+ * _make_object_list - The main interface function of this library; make a set of rows and add them to the given container.
  *
  * @param  {Object}   $container  A jQuery-like container in which to store the rows. It should be empty and have the
  *                                class "object-list". It must be a div.
@@ -215,7 +222,7 @@ function _make_new_row(object, name_key, delete_fn, edit_fn, navigate_fn) {
  *                                database. This function should return a Promise-like object which, on .done(), provides
  *                                the fully (and newly saved) object.
  */
-function MakeObjectList($container, objects, name_key, sort_key, delete_fn, edit_fn, navigate_fn, new_fn) {
+function _make_object_list($container, objects, name_key, sort_key, delete_fn, edit_fn, navigate_fn, new_fn) {
     // Add a loader to the container.
     $loader = $(
         `
@@ -228,8 +235,14 @@ function MakeObjectList($container, objects, name_key, sort_key, delete_fn, edit
 
     // Sort the objects based on their name.
     objects.sort(function(a, b) {
-        if (a[sort_key] < b[sort_key]) return -1;
-        if (a[sort_key] > b[sort_key]) return 1;
+        if (sort_key) {
+            if (a[sort_key] < b[sort_key]) return -1;
+            if (a[sort_key] > b[sort_key]) return 1;
+        } else {
+            if (a < b) return -1;
+            if (a > b) return 1;
+        }
+
         return 0;
     });
 
@@ -252,4 +265,27 @@ function MakeObjectList($container, objects, name_key, sort_key, delete_fn, edit
 
     // Add the rows to the container.
     $container.empty().append($rows.find('> div'));
+}
+
+/**
+ * MakeObjectList - Interface function to the library.
+ *
+ * @param  {Object}   $container The container to create the elements in.
+ * @param  {Object[]} objects    The objects to create the list for.
+ * @param  {Object}   options    A set of options.
+ */
+function MakeObjectList($container, objects, options) {
+    let _empty_function = function() {
+        return $.Deferred().resolve();
+    }
+
+    // Get the options from the object.
+    let name_key = options.name_key || '';
+    let sort_key = options.sort_key || name_key;
+    let delete_fn = options.delete || _empty_function;
+    let edit_fn = options.edit || _empty_function;
+    let navigate_fn = options.navigate || _empty_function;
+    let new_fn = options.new || _empty_function;
+
+    _make_object_list($container, objects, name_key, sort_key, delete_fn, edit_fn, navigate_fn, new_fn);
 }

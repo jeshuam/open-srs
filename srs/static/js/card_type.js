@@ -4,94 +4,113 @@ let _card_type_loading = CardType.Load(CARD_TYPE_NAME)
         CARD_TYPE = card_type;
     });
 
-function UpdateFieldList() {
-    let new_fields = [];
-    $('#fields div.input-group').each(function(i, e) {
-        let $e = $(e);
-        new_fields.push({
-            name: $e.find('.navigate-button').text(),
-            pos: i,
-        });
-    })
-
-    CARD_TYPE.fields = new_fields;
-}
-
 $(function() {
     _card_type_loading.always(function() {
-        MakeObjectList($('#fields'), CARD_TYPE.fields, 'name', 'pos', function(field) {
-            let index = CARD_TYPE.fields.indexOf(field);
-            if (index >= 0) {
-                CARD_TYPE.fields.splice(index, 1);
-            }
+        let $fields = $('#fields');
 
-            return CARD_TYPE.Save();
-        }, function(field, new_name) {
-            field.name = new_name;
-            return CARD_TYPE.Save();
-        }, function() {
-            // noop, don't navigate anywhere
-        }, function(new_name) {
-            let result = new $.Deferred();
-            let new_field = {
-                name: new_name,
-                pos: CARD_TYPE.fields.length,
-            }
+        // Display a list of fields, sorted by their position in the database.
+        MakeObjectList($fields, CARD_TYPE.fields, {
+            name_key: 'name',
+            sort_key: 'pos',
+            delete: function(field) {
+                let index = CARD_TYPE.fields.indexOf(field);
+                if (index >= 0) {
+                    CARD_TYPE.fields.splice(index, 1);
+                }
 
-            CARD_TYPE.fields.push(new_field);
-            CARD_TYPE.Save().done(function() {
-                result.resolve(new_field);
-            }).fail(function(response) {
-                CARD_TYPE.fields.splice(CARD_TYPE.fields.length - 1, 1);
-                result.reject(response);
-            });
+                return CARD_TYPE.Save();
+            },
 
-            return result;
+            edit: function(field, new_name) {
+                field.name = new_name;
+                return CARD_TYPE.Save();
+            },
+
+            navigate: function(field) {
+                // noop, don't navigate anywhere
+            },
+
+            new: function(new_name) {
+                let result = new $.Deferred();
+                let new_field = {
+                    name: new_name,
+                    pos: CARD_TYPE.fields.length,
+                }
+
+                CARD_TYPE.fields.push(new_field);
+                CARD_TYPE.Save().done(function() {
+                    result.resolve(new_field);
+                }).fail(function(response) {
+                    CARD_TYPE.fields.splice(CARD_TYPE.fields.length - 1, 1);
+                    result.reject(response);
+                });
+
+                return result;
+            },
         });
 
-        $('#fields').sortable({
+        // Make the fields sortable.
+        $fields.sortable({
             items: '> div',
             update: function() {
-                UpdateFieldList();
+                let fields = [];
+                $fields.find('div.input-group .navigate-button').each(function(i, e) {
+                    fields.push({
+                        name: $(e).text(),
+                        pos: i,
+                    });
+                })
 
-                $('#fields').sortable('disable');
+                CARD_TYPE.fields = fields;
+
+                $fields.sortable('disable');
                 CARD_TYPE.Save().always(function() {
-                    $('#fields').sortable('enable');
+                    $fields.sortable('enable');
                 })
             }
         });
 
-        MakeObjectList($('#view-list'), CARD_TYPE.views, 'name', 'name', function(view) {
-            let index = CARD_TYPE.views.indexOf(view);
-            if (index >= 0) {
-                CARD_TYPE.views.splice(index, 1);
-            }
+        // Display a list of views, sorted by their name.
+        MakeObjectList($('#view-list'), CARD_TYPE.views, {
+            name_key: 'name',
+            delete: function(view) {
+                let index = CARD_TYPE.views.indexOf(view);
+                if (index >= 0) {
+                    CARD_TYPE.views.splice(index, 1);
+                }
 
-            return CARD_TYPE.Save();
-        }, function(view, new_name) {
-            view.name = new_name;
-            return CARD_TYPE.Save();
-        }, function() {
-            // noop, don't navigate anywhere
-        }, function(new_name) {
-            let result = new $.Deferred();
-            let new_view = {
-                name: new_name,
-                front_html: '',
-                back_html: '',
-                common_css: '',
-            }
+                return CARD_TYPE.Save();
+            },
 
-            CARD_TYPE.views.push(new_view);
-            CARD_TYPE.Save().done(function() {
-                PopulateViewTabContent(new_view);
-                result.resolve(new_view);
-            }).fail(function(response) {
-                CARD_TYPE.views.splice(CARD_TYPE.views.length - 1, 1);
-                result.reject(response);
-            });
+            edit: function(view, new_name) {
+                view.name = new_name;
+                return CARD_TYPE.Save();
+            },
 
-            return result;
+            navigate: function(view) {
+                // noop, don't navigate anywhere
+            },
+
+            new: function(new_name) {
+                let result = new $.Deferred();
+                let new_view = {
+                    name: new_name,
+                    front_html: '',
+                    back_html: '',
+                    common_css: '',
+                }
+
+                CARD_TYPE.views.push(new_view);
+                CARD_TYPE.Save().done(function() {
+                    PopulateViewTabContent(new_view);
+                    result.resolve(new_view);
+                }).fail(function(response) {
+                    CARD_TYPE.views.splice(CARD_TYPE.views.length - 1, 1);
+                    result.reject(response);
+                });
+
+                return result;
+            },
         });
 
         for (let view of CARD_TYPE.views) {

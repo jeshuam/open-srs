@@ -7,15 +7,24 @@ let _decks_loading = Deck.LoadAll()
 
 $(function() {
     _decks_loading.always(function() {
-        MakeObjectList($('#decks'), DECKS, 'name', 'name', function(deck) {
-            return Deck.Delete(deck.name);
-        }, function(deck, new_name) {
-            deck.name = new_name;
-            return deck.Save();
-        }, function(deck) {
-            window.location.href = `/deck/${deck.name}`;
-        }, function(new_name) {
-            return Deck.New(new_name);
+        MakeObjectList($('#decks'), DECKS, {
+            name_key: 'name',
+            delete: function(deck) {
+                return Deck.Delete(deck.name);
+            },
+
+            edit: function(deck, new_name) {
+                deck.name = new_name;
+                return deck.Save();
+            },
+
+            navigate: function(deck) {
+                window.location.href = `/deck/${deck.name}`;
+            },
+
+            new: function(new_name) {
+                return Deck.New(new_name);
+            },
         });
     });
 });

@@ -7,15 +7,24 @@ let _card_type_loading = CardType.LoadAll()
 
 $(function() {
     _card_type_loading.always(function() {
-        MakeObjectList($('#card-types'), CARD_TYPES, 'name', 'name', function(card_type) {
-            return CardType.Delete(card_type.name);
-        }, function(card_type, new_name) {
-            card_type.name = new_name;
-            return card_type.Save();
-        }, function(card_type) {
-            window.location.href = `/card_type/${card_type.name}`;
-        }, function(new_name) {
-            return CardType.New(new_name);
+        MakeObjectList($('#card-types'), CARD_TYPES, {
+            name_key: 'name',
+            delete: function(card_type) {
+                return CardType.Delete(card_type.name);
+            },
+
+            edit: function(card_type, new_name) {
+                card_type.name = new_name;
+                return card_type.Save();
+            },
+
+            navigate: function(card_type) {
+                window.location.href = `/card_type/${card_type.name}`;
+            },
+
+            new: function(new_name) {
+                return CardType.New(new_name);
+            },
         });
     });
 });
